@@ -1,0 +1,24 @@
+# Reference upstream checkout (not part of this package)
+.reference/
+
+# Flutter / Dart
+.dart_tool/
+# Packages do not commit the root lockfile (example app keeps its own).
+/pubspec.lock
+.packages
+.pub-cache/
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# OMO
+.omo/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# macOS
+.DS_Store

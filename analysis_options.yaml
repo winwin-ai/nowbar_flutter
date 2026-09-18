@@ -1,0 +1,12 @@
+# NOTE: flutter_lints 6.x ships its shared config as `flutter.yaml` only;
+# `flutter_lints.yaml` never existed in the published package. The include
+# below is the real path and keeps `flutter analyze` clean.
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    # Public API must be documented because this is a published package.
+    public_member_api_docs: true
+    prefer_const_constructors: true
+    require_trailing_commas: true
+    prefer_final_locals: true
