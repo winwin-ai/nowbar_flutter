@@ -22,7 +22,7 @@
 > 아니라 데모용 화면입니다(자세한 내용은
 > [범위](#범위-이-패키지는-ui-재현입니다) 참고).
 
-<!-- TODO: pub.dev 첫 릴리스 전에 스크린샷 추가 -->
+<p align="center"><img src="doc/screenshots/home.png" width="280" alt="미디어 화면이 맨 위에 놓인 Now Bar 카드 덱"/> <img src="doc/screenshots/dismiss.png" width="280" alt="스와이프로 닫은 뒤의 루틴 화면"/></p>
 
 ## 범위 (이 패키지는 UI 재현입니다)
 
@@ -242,10 +242,15 @@ const NowBarMetrics({
 | --- | --- | --- | --- |
 | `cornerRadius` | `double` | `50` | 바 화면의 모서리 반경(논리 픽셀). |
 | `widgetHeight` | `double` | `80` | 화면 한 개의 높이(논리 픽셀). |
-| `translationClamp` | `(double, double)` | `(-200, 250)` | 세로 드래그 이동의 하한·상한. 첫 값은 위쪽 이동, 둘째 값은 아래쪽 이동을 제한합니다. |
+| `translationClamp` | `(double, double)` | `(-200, 250)` | 세로 드래그 이동의 하한·상한(물리 픽셀). 첫 값은 위쪽 이동, 둘째 값은 아래쪽 이동을 제한합니다. |
 | `shadowElevation` | `double` | `12` | 바가 드리우는 그림자의 높이(논리 픽셀). |
-| `fillMaxWidthOffset` | `double` | `0.9` | 최대 확장 시 바가 차지하는 가용 너비 비율. |
-| `animationMultiplier` | `int` | `1` | 애니메이션 시간에 곱하는 값. `1`보다 크면 느려지고 작으면 빨라집니다. |
+| `fillMaxWidthOffset` | `double` | `0.9` | 최대 확장 시 바가 차지하는 가용 너비 비율(0~1). |
+| `animationMultiplier` | `int` | `1` | 애니메이션 시간에 곱하는 정수 배수. `1`보다 크면 느려지고 작으면 빨라집니다. |
+
+> **단위.** 세로 이동과 그 클램프, 카드 적층 오프셋, 드래그 임계값은 원본
+> 구현과 맞추기 위해 **물리 픽셀**을 씁니다. 덕분에 화면 밀도가 달라도 세로
+> 이동 거리와 카드 적층이 원본과 같게 동작합니다. 모서리 반경, 높이, 그림자는
+> **논리 픽셀**입니다.
 
 원본을 바꾸지 않고 변형을 만들려면 `copyWith`를 사용하세요.
 
@@ -263,7 +268,7 @@ final compact = base.copyWith(widgetHeight: 64, cornerRadius: 24);
 | `dragUp` | 위로 드래그할 때만 다음 컴포넌트로 넘어갑니다. |
 | `dragDown` | 아래로 드래그할 때만 이전 컴포넌트로 돌아갑니다. |
 | `dragVertically` | 위·아래 드래그로 컴포넌트를 넘나듭니다. |
-| `dragHorizontally` | 세로 순환은 하지 않습니다. 가로 드래그가 닫기를 켜고 끄지는 않습니다(아래 참고). |
+| `dragHorizontally` | 세로 순환만 하지 않습니다. 활성 컴포넌트가 `dismissible`이면 가로 스와이프 닫기는 그대로 쓸 수 있습니다(아래 참고). |
 
 ### `NotificationColorController`
 
@@ -509,7 +514,7 @@ const TimerWidget({
 const NowBarMetrics(
   cornerRadius: 24,          // 더 둥글거나 각진 화면
   widgetHeight: 72,          // 더 높거나 낮은 바
-  translationClamp: (-120, 180), // 바가 움직일 수 있는 범위 제한
+  translationClamp: (-120, 180), // 물리 픽셀; 바가 움직일 수 있는 범위 제한
   shadowElevation: 8,        // 옅은 그림자
   fillMaxWidthOffset: 0.85,  // 가용 너비 비율
   animationMultiplier: 2,    // 더 느리고 신중한 움직임
@@ -520,7 +525,7 @@ const NowBarMetrics(
 | --- | --- |
 | `cornerRadius` | 화면 모서리의 둥글기. |
 | `widgetHeight` | 화면 높이. |
-| `translationClamp` | 드래그 이동의 `(하한, 상한)`. 첫 값은 위쪽, 둘째 값은 아래쪽 이동을 제한합니다. |
+| `translationClamp` | 드래그 이동의 `(하한, 상한)`(물리 픽셀). 첫 값은 위쪽, 둘째 값은 아래쪽 이동을 제한합니다. |
 | `shadowElevation` | 그림자 깊이. |
 | `fillMaxWidthOffset` | 가용 공간 대비 너비 비율(예: `0.9` = 90%). |
 | `animationMultiplier` | 전역 애니메이션 속도. `> 1`이면 느려지고 `< 1`이면 빨라집니다. |
@@ -609,6 +614,16 @@ flutter run
 
 ```sh
 flutter test
+```
+
+테스트는 단위·위젯 테스트 116개와 골든 이미지 테스트 10개로 구성됩니다. 골든
+테스트에는 `golden` 태그가 붙어 있고, 골든 이미지는 플랫폼에 따라 달라지므로
+CI는 `flutter test --exclude-tags golden`으로 제외합니다. 골든 이미지를 다시
+만들려면 macOS에서 패키지 루트와 `example/`에서 각각 실행하세요.
+
+```sh
+flutter test --update-goldens --tags golden
+(cd example && flutter test --update-goldens --tags golden)
 ```
 
 테스트는 `FontLoader`로 내장 Inter 폰트를 불러오므로, 기기나 에뮬레이터

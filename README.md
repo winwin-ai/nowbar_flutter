@@ -22,7 +22,7 @@ media, notifications, routines, sports, and timers.
 > demo components, not live system integrations (see
 > [Scope](#scope-this-is-a-ui-recreation)).
 
-<!-- TODO: add screenshots before the first pub.dev release -->
+<p align="center"><img src="doc/screenshots/home.png" width="280" alt="The Now Bar deck with the media surface on top"/> <img src="doc/screenshots/dismiss.png" width="280" alt="The routines surface after a swipe-to-dismiss"/></p>
 
 ## Scope (this is a UI recreation)
 
@@ -240,12 +240,18 @@ const NowBarMetrics({
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
-| `cornerRadius` | `double` | `50` | Corner radius, in logical pixels, of the bar surface. |
-| `widgetHeight` | `double` | `80` | Height, in logical pixels, of a single surface. |
-| `translationClamp` | `(double, double)` | `(-200, 250)` | Lower and upper bounds for vertical drag translation. The first value clamps upward movement, the second downward. |
-| `shadowElevation` | `double` | `12` | Elevation, in logical pixels, of the bar's shadow. |
-| `fillMaxWidthOffset` | `double` | `0.9` | Fraction of the available width the bar occupies when maximized. |
-| `animationMultiplier` | `int` | `1` | Multiplies animation durations. Values above `1` slow motion down, below `1` speed it up. |
+| `cornerRadius` | `double` | `50` | Corner radius of the bar surface, in logical pixels. |
+| `widgetHeight` | `double` | `80` | Height of a single surface, in logical pixels. |
+| `translationClamp` | `(double, double)` | `(-200, 250)` | Lower and upper bounds for vertical drag translation, in physical pixels. The first value clamps upward movement, the second downward. |
+| `shadowElevation` | `double` | `12` | Elevation of the bar's shadow, in logical pixels. |
+| `fillMaxWidthOffset` | `double` | `0.9` | Fraction (0 to 1) of the available width the bar occupies when maximized. |
+| `animationMultiplier` | `int` | `1` | Integer multiplier for animation durations. Values above `1` slow motion down, below `1` speed it up. |
+
+> **Units.** The vertical translation, its clamp, the stack offsets, and the
+> drag thresholds are **physical pixels**, matching the reference
+> implementation, so vertical travel and card stacking behave the same as the
+> original across display densities. The corner radius, height, and shadow are
+> **logical pixels**.
 
 Use `copyWith` to derive a variant without mutating the original:
 
@@ -263,7 +269,7 @@ The gesture direction a surface responds to.
 | `dragUp` | Only upward drags advance to the next component. |
 | `dragDown` | Only downward drags step back to the previous component. |
 | `dragVertically` | Both upward and downward drags step through components. |
-| `dragHorizontally` | No vertical cycling; horizontal drags do not toggle dismissal (see below). |
+| `dragHorizontally` | No vertical cycling only; horizontal swipe-to-dismiss is still available when the active component is `dismissible` (see below). |
 
 ### `NotificationColorController`
 
@@ -511,7 +517,7 @@ const TimerWidget({
 const NowBarMetrics(
   cornerRadius: 24,          // rounder or squarer surfaces
   widgetHeight: 72,          // taller or shorter bar
-  translationClamp: (-120, 180), // limit how far the bar can travel
+  translationClamp: (-120, 180), // physical px; limit how far the bar can travel
   shadowElevation: 8,        // lighter shadow
   fillMaxWidthOffset: 0.85,  // fraction of available width
   animationMultiplier: 2,    // slower, more deliberate motion
@@ -522,7 +528,7 @@ const NowBarMetrics(
 | --- | --- |
 | `cornerRadius` | Surface roundness. |
 | `widgetHeight` | Surface height. |
-| `translationClamp` | `(lower, upper)` bounds for drag translation; the first value clamps upward movement, the second downward. |
+| `translationClamp` | `(lower, upper)` bounds for drag translation, in physical pixels; the first value clamps upward movement, the second downward. |
 | `shadowElevation` | Shadow depth. |
 | `fillMaxWidthOffset` | Width as a fraction of the available space (for example `0.9` = 90%). |
 | `animationMultiplier` | Global animation speed. `> 1` slows down, `< 1` speeds up. |
@@ -612,6 +618,16 @@ Run the package test suite from the repository root:
 
 ```sh
 flutter test
+```
+
+The suite runs 116 unit and widget tests plus 10 golden-image tests. The golden
+tests carry the `golden` tag, and CI runs `flutter test --exclude-tags golden`
+because golden images are platform-dependent. Regenerate them on macOS from the
+package root, and again inside `example/` for the example app's golden:
+
+```sh
+flutter test --update-goldens --tags golden
+(cd example && flutter test --update-goldens --tags golden)
 ```
 
 The suite loads the bundled Inter fonts through `FontLoader`, so typography
