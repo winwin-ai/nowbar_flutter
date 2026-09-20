@@ -14,6 +14,12 @@ topics:
 platforms:
   android:
 
+screenshots:
+  - description: "The Now Bar deck on Android with the media surface on top and the stacked cards peeking behind."
+    path: doc/screenshots/home.png
+  - description: "The routines surface as the top card after dismissing the timer card with a horizontal swipe."
+    path: doc/screenshots/dismiss.png
+
 environment:
   sdk: ^3.12.0
   flutter: ">=3.44.0"
