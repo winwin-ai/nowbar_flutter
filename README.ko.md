@@ -7,10 +7,11 @@
 화면을 쌓아 올려 보여줍니다.
 
 > **영감을 준 프로젝트:** Jetpack Compose 프로젝트
-> [`styropyr0/NowBar`](https://github.com/styropyr0/NowBar). 이 패키지는 해당
-> 디자인을 독립적으로 클린룸 포팅한 Dart 구현입니다. **삼성 또는 원작자와
-> 제휴·후원·보증 관계가 없으며**, 원본 저장소의 코드나 아트워크를 포함하지
-> 않습니다.
+> [`styropyr0/NowBar`](https://github.com/styropyr0/NowBar). 이 패키지는 원본
+> Jetpack Compose 프로젝트에서 영감을 받아 독립적으로 다시 구현한 Dart
+> 구현입니다. **삼성 또는 원작자와 제휴·후원·보증 관계가 없으며**, 원본
+> 저장소의 코드나 아트워크를 포함하지 않습니다. 원작자에게 보낸 라이선스
+> 요청은 진행 중입니다.
 
 [![CI](https://github.com/winwin-ai/nowbar_flutter/actions/workflows/ci.yml/badge.svg)](https://github.com/winwin-ai/nowbar_flutter/actions/workflows/ci.yml)
 <!-- [![pub package](https://img.shields.io/pub/v/nowbar_flutter.svg)](https://pub.dev/packages/nowbar_flutter) -->
@@ -29,7 +30,7 @@
 담당합니다.
 
 - 실제 미디어 재생, 백그라운드 오디오, 플랫폼 미디어 세션은 없습니다.
-- 시스템 알림, Android/iOS 알림 API와 연동하지 않습니다.
+- 시스템 알림, Android 알림 API와 연동하지 않습니다.
 - 백그라운드 실행, 위치 정보, 건강/피트니스 데이터 접근이 없습니다.
 
 내장된 5개 위젯은 전달받은 값을 그대로 그리는 데모 화면입니다. 실제 상태,
@@ -41,7 +42,7 @@
   드래그 방향을 설정할 수 있습니다.
 - **내장 데모 위젯 5종:** 미디어 플레이어, 알림, 루틴, 스포츠, 타이머.
 - **순수 Dart, 네이티브 코드 없음.** 플랫폼 채널·플러그인·`MethodChannel`이
-  없어 Android, iOS, 데스크톱, 웹에서 모두 동작합니다.
+  없으며, 지원 대상은 Android뿐입니다.
 - **레이아웃 전면 제어.** 불변 `NowBarMetrics`로 모서리 반경, 높이, 이동
   클램프, 그림자, 너비 비율, 애니메이션 속도를 조절합니다.
 - **테마 지원.** 원본 디자인에서 포팅한 Material 3 색상 스킴과 `seedColor`
@@ -57,10 +58,10 @@
 | --- | --- |
 | Flutter | `>= 3.44.0` |
 | Dart SDK | `^3.12.0` |
-| 지원 플랫폼 | Android, iOS, macOS, Linux, Windows, 웹 |
+| 지원 플랫폼 | Android |
 
 순수 Dart 패키지입니다. 플랫폼 플러그인을 선언하지 않고 네이티브 코드를
-호출하지 않으므로, 별도 설정 없이 모든 Flutter 타깃에서 빌드됩니다.
+호출하지 않으므로, Android에서 별도 플랫폼 설정 없이 빌드됩니다.
 
 ## 설치
 
@@ -262,7 +263,7 @@ final compact = base.copyWith(widgetHeight: 64, cornerRadius: 24);
 | `dragUp` | 위로 드래그할 때만 다음 컴포넌트로 넘어갑니다. |
 | `dragDown` | 아래로 드래그할 때만 이전 컴포넌트로 돌아갑니다. |
 | `dragVertically` | 위·아래 드래그로 컴포넌트를 넘나듭니다. |
-| `dragHorizontally` | 가로 드래그로 활성 컴포넌트를 닫습니다. |
+| `dragHorizontally` | 세로 순환은 하지 않습니다. 가로 드래그가 닫기를 켜고 끄지는 않습니다(아래 참고). |
 
 ### `NotificationColorController`
 
@@ -350,8 +351,8 @@ Now Bar 화면에 쓰이는 색상 시드와 Material 3 색상 스킴 두 가지
 | `darkColorScheme` | `ColorScheme` | 원본 시드를 고정한 Material 3 다크 스킴. |
 
 원본 테마의 Android 12+ 다이내믹 컬러는 의도적으로 제외했습니다. 배경화면에서
-색을 끌어오는 기능은 Flutter에 이식 가능한 대응물이 없어, 위 스킴은 모든
-플랫폼에서 동일하게 동작합니다.
+색을 끌어오는 기능은 Flutter에 이식 가능한 대응물이 없어, 위 스킴은 Android
+기기에서 동일하게 동작합니다.
 
 ### `NowBarTypography`
 
@@ -535,8 +536,9 @@ NowBarWidget(
 )
 ```
 
-`dragVertically`로 순환 목록을 넘겨 보고, `dismissible`이 `true`인
-컴포넌트에는 `dragHorizontally`로 스와이프 닫기를 활성화할 수 있습니다.
+`dragVertically`로 순환 목록을 넘겨 보세요. 가로 스와이프 닫기는
+`dragDirection`과 무관하게 동작합니다. `dismissible`이 `true`인 활성
+컴포넌트라면 어떤 값을 골랐든 항상 스와이프로 닫을 수 있습니다.
 
 ### 알림 색상과 그라디언트
 
@@ -585,14 +587,11 @@ MaterialApp(
 
 ## 플랫폼 참고
 
-- **블러(Blur).** 블러 효과는 `ImageFiltered`로 구현합니다. 웹에서는
-  CanvasKit 또는 skwasm 렌더러가 필요하며, 구형 HTML 렌더러는 지원하지
-  않습니다. 웹을 제외한 모든 타깃에서는 별도 설정 없이 동작합니다.
-- **그 외 기능은 렌더러와 무관합니다.** 레이아웃, 애니메이션, 드래그,
-  그라디언트, 그림자, 내장 Inter 폰트는 Android, iOS, macOS, Linux,
-  Windows, 웹에서 동일하게 렌더링됩니다.
-- **플랫폼 채널이 없습니다.** `AndroidManifest`, `Info.plist`, 데스크톱
-  러너에 설정할 것이 없습니다.
+- **지원 플랫폼은 Android뿐입니다.** Android만 지원·검증 대상입니다. 그 외
+  Flutter 타깃(iOS, macOS, Linux, Windows, 웹)은 지원하지 않고 검증도 하지
+  않았으며, 올바르게 렌더링되거나 동작한다고 보장하지 않습니다.
+- **플랫폼 채널이 없습니다.** 패키지에 플랫폼 채널이 없으므로
+  `AndroidManifest.xml` 같은 네이티브 매니페스트에 설정할 것이 없습니다.
 
 ## 예제 앱
 

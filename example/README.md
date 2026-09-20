@@ -1,17 +1,24 @@
-# nowbar_flutter_example
+# nowbar_flutter example
 
-A new Flutter project.
+An Android example app for [`nowbar_flutter`](../README.md). It shows the
+draggable Now Bar deck in a full-screen layout with a dark theme and a gradient
+backdrop.
 
-## Getting Started
+The demo rotates the five built-in widgets: the media player, timer, routines,
+sports, and notification surfaces. Drag the bar up or down to cycle through
+them. All surface content is stand-in data, and the example ships no
+third-party artwork.
 
-This project is a starting point for a Flutter application.
+Android is the only supported platform.
 
-A few resources to get you started if this is your first Flutter project:
+## Running
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+From this directory, with an Android device or emulator attached:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```sh
+flutter run
+```
+
+The example depends on the package by path, so run it from a checkout of the
+repository. See the [main README](../README.md) for the package API and
+configuration.

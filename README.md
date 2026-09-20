@@ -8,9 +8,10 @@ media, notifications, routines, sports, and timers.
 
 > **Inspired by** the Jetpack Compose project
 > [`styropyr0/NowBar`](https://github.com/styropyr0/NowBar). This package is an
-> independent, clean-room Dart port of that design language. It is **not
-> affiliated with, sponsored by, or endorsed by Samsung or the original
-> author**, and it ships no code or artwork from the original repository.
+> independent reimplementation inspired by the original Jetpack Compose
+> project. It is **not affiliated with, sponsored by, or endorsed by Samsung or
+> the original author**, and it ships no code or artwork from the original
+> repository. A license request to the upstream author is in progress.
 
 [![CI](https://github.com/winwin-ai/nowbar_flutter/actions/workflows/ci.yml/badge.svg)](https://github.com/winwin-ai/nowbar_flutter/actions/workflows/ci.yml)
 <!-- [![pub package](https://img.shields.io/pub/v/nowbar_flutter.svg)](https://pub.dev/packages/nowbar_flutter) -->
@@ -29,7 +30,7 @@ media, notifications, routines, sports, and timers.
 presentation package only:
 
 - No real media playback, no background audio, no platform media session.
-- No integration with system notifications or Android/iOS notification APIs.
+- No integration with system notifications or Android notification APIs.
 - No background execution, geolocation, or health/fitness data access.
 
 The five built-in widgets are demo surfaces driven by the values you pass in.
@@ -42,7 +43,7 @@ Wire them to your own state, controllers, and platform services as needed.
 - **Five built-in demo widgets:** media player, notification, routines, sports,
   and timer.
 - **Pure Dart, zero native code.** No platform channels, no plugins, no
-  `MethodChannel`; works on Android, iOS, desktop, and web.
+  `MethodChannel`; Android is the only supported target.
 - **Full layout control** through immutable `NowBarMetrics` (corner radius,
   height, translation clamp, shadow, width fraction, animation speed).
 - **Theming.** Material 3 color schemes ported from the reference design, plus
@@ -58,10 +59,10 @@ Wire them to your own state, controllers, and platform services as needed.
 | --- | --- |
 | Flutter | `>= 3.44.0` |
 | Dart SDK | `^3.12.0` |
-| Platforms | Android, iOS, macOS, Linux, Windows, web |
+| Platform | Android |
 
 The package is pure Dart. It declares no platform plugins and calls no native
-code, so it builds for every Flutter target without extra setup.
+code, so it needs no platform-specific setup on Android.
 
 ## Installation
 
@@ -262,7 +263,7 @@ The gesture direction a surface responds to.
 | `dragUp` | Only upward drags advance to the next component. |
 | `dragDown` | Only downward drags step back to the previous component. |
 | `dragVertically` | Both upward and downward drags step through components. |
-| `dragHorizontally` | Horizontal drags dismiss the active component. |
+| `dragHorizontally` | No vertical cycling; horizontal drags do not toggle dismissal (see below). |
 
 ### `NotificationColorController`
 
@@ -352,7 +353,7 @@ Color seeds and the two Material 3 color schemes used by Now Bar surfaces.
 
 Android 12+ dynamic color from the reference theme is intentionally omitted:
 wallpaper-derived color has no portable Flutter equivalent, so these schemes
-are stable on every platform.
+are stable across Android devices.
 
 ### `NowBarTypography`
 
@@ -537,8 +538,9 @@ NowBarWidget(
 )
 ```
 
-Use `dragVertically` to browse the rotation, and `dragHorizontally` to enable
-swipe-to-dismiss on components whose `dismissible` flag is `true`.
+Use `dragVertically` to browse the rotation. Horizontal swipe-to-dismiss is
+independent of `dragDirection`: it is always available for the active component
+whose `dismissible` flag is `true`, whatever the chosen value.
 
 ### Notification colors and gradients
 
@@ -587,14 +589,12 @@ would be shadowed by the app's own theme. To theme the whole app instead, call
 
 ## Platform notes
 
-- **Blur.** Blur effects are implemented with `ImageFiltered`. On web this
-  requires the CanvasKit or skwasm renderer; the legacy HTML renderer does not
-  support it. On all non-web targets it works out of the box.
-- **Everything else is renderer-agnostic.** Layout, animation, dragging,
-  gradients, shadows, and the bundled Inter font render identically on Android,
-  iOS, macOS, Linux, Windows, and web.
-- **No platform channels.** There is nothing to configure in `AndroidManifest`,
-  `Info.plist`, or desktop runners.
+- **Supported platform: Android.** Android is the only supported and tested
+  target. Other Flutter targets (iOS, macOS, Linux, Windows, and web) are
+  unsupported and untested, and the package does not guarantee that they render
+  or behave correctly.
+- **No platform channels.** The package contains no platform channels, so there
+  is nothing to configure in native manifests such as `AndroidManifest.xml`.
 
 ## Example app
 

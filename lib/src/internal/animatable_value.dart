@@ -24,6 +24,8 @@ class AnimatableValue {
 
   Completer<void>? _activeAnimationCompletion;
 
+  bool _disposed = false;
+
   /// The current value.
   ///
   /// The value is not constrained to `0..1`; any finite double is valid.
@@ -40,8 +42,13 @@ class AnimatableValue {
   /// Immediately moves the value to [target], cancelling any running
   /// animation.
   ///
-  /// Listeners are notified synchronously.
+  /// Listeners are notified synchronously. Once [dispose] has run this is a
+  /// no-op, so a release handler that outlives its state cannot touch the
+  /// disposed controller.
   void snapTo(double target) {
+    if (_disposed) {
+      return;
+    }
     _completeActiveAnimation();
     _controller.value = target;
   }
@@ -50,12 +57,16 @@ class AnimatableValue {
   ///
   /// The returned future completes once [target] is reached. If the animation
   /// is superseded by another [animateTo] or by [snapTo], it completes
-  /// normally instead of reporting an error.
+  /// normally instead of reporting an error. Once [dispose] has run the
+  /// returned future is already complete and the value does not move.
   Future<void> animateTo(
     double target, {
     Duration duration = const Duration(milliseconds: 300),
     Curve curve = Curves.fastOutSlowIn,
   }) {
+    if (_disposed) {
+      return Future<void>.value();
+    }
     _completeActiveAnimation();
     final completion = Completer<void>();
     if (duration <= Duration.zero) {
@@ -77,8 +88,10 @@ class AnimatableValue {
   /// Releases the underlying controller.
   ///
   /// Any pending [animateTo] future completes normally, and the value must not
-  /// be used afterwards.
+  /// be used afterwards: [snapTo] becomes a no-op and [animateTo] returns an
+  /// already completed future.
   void dispose() {
+    _disposed = true;
     _completeActiveAnimation();
     _controller.dispose();
   }

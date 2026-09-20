@@ -24,13 +24,13 @@ jobs:
         run: flutter pub get
 
       - name: Verify formatting
-        run: dart format --output=none --set-exit-if-changed lib test
+        run: dart format --output=none --set-exit-if-changed lib test example/lib example/test
 
       - name: Analyze
         run: flutter analyze
 
-      - name: Run tests
-        run: flutter test
+      - name: Run tests (golden excluded on Linux)
+        run: flutter test --exclude-tags golden
 
   publish-dry-run:
     name: Publish dry-run

@@ -35,9 +35,11 @@ class MediaPlayerTrack {
 /// a share action. Playback is visual only: [tracks] is cycled locally and no
 /// audio is played.
 ///
-/// The horizontal inset matches the reference layout. The reference also pads
-/// the control row vertically, but that padding is clamped away by the fixed
-/// height of a Now Bar surface, so the row is vertically centered instead.
+/// The horizontal inset matches the reference layout: the transport row is
+/// padded 30dp from both edges, and the share action carries an extra 30dp
+/// trailing inset. The reference also pads the control row vertically, but
+/// that padding is clamped away by the fixed height of a Now Bar surface, so
+/// the row is vertically centered instead.
 class MediaPlayerWidget extends StatefulWidget {
   /// Creates a [MediaPlayerWidget] that starts on the first of [tracks].
   const MediaPlayerWidget({
@@ -207,12 +209,17 @@ class _MediaPlayerWidgetState extends State<MediaPlayerWidget> {
                         ],
                       ),
                     ),
-                    _TransportButton(
-                      icon: NowBarIcons.share,
-                      iconSize: 25,
-                      semanticLabel: 'Share track',
-                      color: _isSharing ? _shareHighlightColor : Colors.white,
-                      onPressed: _toggleSharing,
+                    // The reference insets the share action 30dp further from
+                    // the trailing edge than the transport cluster.
+                    Padding(
+                      padding: const EdgeInsets.only(right: 30),
+                      child: _TransportButton(
+                        icon: NowBarIcons.share,
+                        iconSize: 25,
+                        semanticLabel: 'Share track',
+                        color: _isSharing ? _shareHighlightColor : Colors.white,
+                        onPressed: _toggleSharing,
+                      ),
                     ),
                   ],
                 ),

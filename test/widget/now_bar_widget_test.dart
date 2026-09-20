@@ -785,6 +785,58 @@ void main() {
     });
   });
 
+  group('physical pixels', () {
+    testWidgets('scales drag deltas by the device pixel ratio', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+
+      final NowBarComponent a = _card('Card A');
+      final NowBarComponent b = _card('Card B');
+
+      await tester.pumpWidget(
+        _harness(
+          components: <NowBarComponent>[a, b],
+          dragDirection: NowBarDragController.dragVertically,
+        ),
+      );
+
+      // 80 logical pixels of travel is 160 physical pixels: past the 150px
+      // switchable threshold, while the rendered offset stays at 80 logical.
+      final TestGesture gesture = await _startPan(tester);
+      await gesture.moveBy(const Offset(0, -80));
+      await tester.pump();
+      expect(_translationOf(tester, a), const Offset(0, -80));
+
+      await gesture.up();
+      await tester.pump();
+      await _settleOvershoot(tester);
+      expect(_topLabel(tester), 'Card B');
+
+      await tester.pumpWidget(const SizedBox());
+
+      // The same logical drag at a 1.0 ratio stays below the threshold.
+      tester.view.physicalSize = _screenSize;
+      tester.view.devicePixelRatio = 1;
+
+      final NowBarComponent c = _card('Card C');
+      final NowBarComponent d = _card('Card D');
+
+      await tester.pumpWidget(
+        _harness(
+          components: <NowBarComponent>[c, d],
+          dragDirection: NowBarDragController.dragVertically,
+        ),
+      );
+
+      await _pan(tester, const Offset(0, -80));
+      await _settleSnapBack(tester);
+      expect(_topLabel(tester), 'Card C');
+    });
+  });
+
   group('rotation safety', () {
     testWidgets('a single card wraps onto itself without crashing', (
       WidgetTester tester,
@@ -825,6 +877,34 @@ void main() {
 
       expect(_barDescendants(find.byType(Text)), findsNothing);
       expect(_barDescendants(find.byType(Transform)), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('survives disposal during a switch without throwing', (
+      WidgetTester tester,
+    ) async {
+      _useFixedViewport(tester);
+      final NowBarComponent a = _card('Card A');
+      final NowBarComponent b = _card('Card B');
+
+      await tester.pumpWidget(
+        _harness(
+          components: <NowBarComponent>[a, b],
+          dragDirection: NowBarDragController.dragVertically,
+        ),
+      );
+
+      await _pan(tester, const Offset(0, -300));
+
+      // 150ms into the 300ms overshoot leg the state is unmounted; the pending
+      // return leg and the index change must not touch disposed animatables.
+      await tester.pump(const Duration(milliseconds: 150));
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pump(const Duration(milliseconds: 1));
+      await tester.pump();
+
       expect(tester.takeException(), isNull);
     });
 

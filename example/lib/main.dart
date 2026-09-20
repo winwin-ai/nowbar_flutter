@@ -21,7 +21,7 @@ class NowBarExampleApp extends StatelessWidget {
     return MaterialApp(
       title: 'NowBar Flutter Example',
       debugShowCheckedModeBanner: false,
-      theme: NowBarTheme.buildThemeData(dark: true),
+      theme: NowBarTheme.buildThemeData(),
       home: const _DemoPage(),
     );
   }
@@ -39,7 +39,7 @@ class _DemoPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return NowBarTheme.dark(
+    return NowBarTheme.light(
       child: Scaffold(
         body: DecoratedBox(
           decoration: const BoxDecoration(gradient: _backdropGradient),
@@ -191,12 +191,12 @@ final List<NowBarComponent> _demoComponents = <NowBarComponent>[
   ),
 ];
 
-/// Full-screen backdrop: near-black at the top lifting to a deep violet at the
-/// bottom, so the dark card surfaces have a subtle stage to sit on.
+/// Full-screen backdrop: white lifting to a soft gray at the bottom, matching
+/// the light stage the reference Now Bar sits on.
 const LinearGradient _backdropGradient = LinearGradient(
   begin: Alignment.topCenter,
   end: Alignment.bottomCenter,
-  colors: <Color>[Color(0xFF08080F), Color(0xFF1B1833)],
+  colors: <Color>[Color(0xFFFFFFFF), Color(0xFFF2F2F4)],
 );
 
 // ---------------------------------------------------------------------------

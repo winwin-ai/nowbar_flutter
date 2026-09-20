@@ -99,15 +99,16 @@ class _NowBarWidgetState extends State<NowBarWidget>
       return;
     }
     final delta = details.delta;
+    final double dpr = MediaQuery.devicePixelRatioOf(context);
     if (_locked == DragDirection.none) {
       _locked = delta.dx.abs() > delta.dy.abs()
           ? DragDirection.horizontal
           : DragDirection.vertical;
     }
     if (_locked == DragDirection.horizontal) {
-      _offsetX.snapTo(_offsetX.value + delta.dx);
+      _offsetX.snapTo(_offsetX.value + delta.dx * dpr);
     } else {
-      _offsetY.snapTo(_offsetY.value + delta.dy);
+      _offsetY.snapTo(_offsetY.value + delta.dy * dpr);
     }
   }
 
@@ -174,6 +175,9 @@ class _NowBarWidgetState extends State<NowBarWidget>
           clamp.$1,
           duration: Duration(milliseconds: 300 * multiplier),
         );
+        if (!mounted) {
+          return;
+        }
         await _offsetY.animateTo(
           0,
           duration: const Duration(milliseconds: 200),
@@ -191,6 +195,9 @@ class _NowBarWidgetState extends State<NowBarWidget>
           clamp.$2,
           duration: Duration(milliseconds: 300 * multiplier),
         );
+        if (!mounted) {
+          return;
+        }
         await _offsetY.animateTo(
           0,
           duration: const Duration(milliseconds: 200),
@@ -255,6 +262,11 @@ class _NowBarWidgetState extends State<NowBarWidget>
     final isTop = index == 0;
     final isNext = index == 1;
 
+    // Thresholds, clamps, and stack offsets are physical pixels, matching the
+    // upstream `detectDragGestures`/`graphicsLayer` semantics; rendering works
+    // in logical pixels, so convert back at the transform.
+    final double dpr = MediaQuery.devicePixelRatioOf(context);
+
     final double translationY;
     if (isTop) {
       translationY = _offsetY.value;
@@ -298,8 +310,8 @@ class _NowBarWidgetState extends State<NowBarWidget>
         height: metrics.widgetHeight,
         child: Transform.translate(
           offset: Offset(
-            isTop ? _offsetX.value : 0.0,
-            translationY.clampRange(clamp),
+            isTop ? _offsetX.value / dpr : 0.0,
+            translationY.clampRange(clamp) / dpr,
           ),
           child: Transform.scale(
             scale: scale,
@@ -308,7 +320,7 @@ class _NowBarWidgetState extends State<NowBarWidget>
                 borderRadius: BorderRadius.circular(metrics.cornerRadius),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xCC000000),
+                    color: const Color(0x33000000),
                     blurRadius: metrics.shadowElevation,
                     offset: const Offset(0, 6),
                   ),
