@@ -1,17 +1,30 @@
-import 'dart:convert';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:nowbar_flutter/nowbar_flutter.dart';
+import 'package:flutter/services.dart';
+
+const MethodChannel _timerChannel = MethodChannel('nowbar/live_timer');
+
+const int _secondsPerMinute = 60;
+
+const int _secondsPerHour = 60 * _secondsPerMinute;
+
+const int _minDurationSeconds = _secondsPerMinute;
+
+const int _maxDurationSeconds = 4 * _secondsPerHour;
+
+const Duration _tickInterval = Duration(milliseconds: 250);
+
+const List<int> _presetMinutes = <int>[1, 3, 5, 10, 15, 30, 60];
 
 /// Starts the example application.
-void main() {
-  runApp(const NowBarExampleApp());
-}
+void main() => runApp(const NowBarExampleApp());
 
 /// Root widget of the example application.
 ///
-/// Installs the dark Now Bar theme on the [MaterialApp] so the app chrome and
-/// the bar surfaces share one palette, then shows the demo page.
+/// Shows a live timer on a dark Material 3 theme. The screen mirrors its
+/// countdown to the host platform over the `nowbar/live_timer` channel and
+/// keeps counting on its own when no host implementation is registered.
 class NowBarExampleApp extends StatelessWidget {
   /// Creates the example application.
   const NowBarExampleApp({super.key});
@@ -19,254 +32,448 @@ class NowBarExampleApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'NowBar Flutter Example',
+      title: 'Now Bar Live Timer',
       debugShowCheckedModeBanner: false,
-      theme: NowBarTheme.buildThemeData(),
-      home: const _DemoPage(),
+      theme: ThemeData(
+        useMaterial3: true,
+        fontFamily: 'Inter',
+        fontFamilyFallback: const <String>['NotoSansKR'],
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF503164),
+          brightness: Brightness.dark,
+        ),
+      ),
+      home: const _TimerPage(),
     );
   }
 }
 
-/// Full-screen page that hosts the Now Bar deck.
-///
-/// The composition mirrors the upstream demo: a [NowBarTheme] wraps a
-/// [Scaffold] whose body is a [SafeArea] with a bottom-aligned [Align], offset
-/// 50 logical pixels from the bottom edge. A short heading fills the space
-/// above the deck and explains the gesture the demo answers to.
-class _DemoPage extends StatelessWidget {
-  /// Creates the demo page.
-  const _DemoPage();
+enum _TimerPhase { idle, running, finished }
+
+class _TimerPage extends StatefulWidget {
+  const _TimerPage();
+
+  @override
+  State<_TimerPage> createState() => _TimerPageState();
+}
+
+class _TimerPageState extends State<_TimerPage> {
+  static const int _initialDurationSeconds = 5 * _secondsPerMinute;
+
+  static const List<FontFeature> _tabularFigures = <FontFeature>[
+    FontFeature.tabularFigures(),
+  ];
+
+  _TimerPhase _phase = _TimerPhase.idle;
+  int _selectedSeconds = _initialDurationSeconds;
+  int _sessionSeconds = _initialDurationSeconds;
+  int _remainingSeconds = _initialDurationSeconds;
+  bool _completedNaturally = false;
+  DateTime? _endAt;
+  Timer? _ticker;
+
+  bool get _isRunning => _phase == _TimerPhase.running;
+
+  int get _displaySeconds {
+    switch (_phase) {
+      case _TimerPhase.idle:
+        return _selectedSeconds;
+      case _TimerPhase.running:
+        return _remainingSeconds;
+      case _TimerPhase.finished:
+        return _completedNaturally ? 0 : _selectedSeconds;
+    }
+  }
+
+  bool get _usesHourFormat {
+    final int referenceSeconds =
+        _isRunning ? _sessionSeconds : _selectedSeconds;
+    return referenceSeconds >= _secondsPerHour;
+  }
+
+  double get _progress {
+    if (!_isRunning || _sessionSeconds == 0) {
+      return 0;
+    }
+    return _remainingSeconds / _sessionSeconds;
+  }
+
+  String get _statusLabel {
+    switch (_phase) {
+      case _TimerPhase.idle:
+        return '설정 중';
+      case _TimerPhase.running:
+        return '실행 중 · 잠금화면에 표시 중';
+      case _TimerPhase.finished:
+        return '종료됨';
+    }
+  }
+
+  Color _statusColor(ColorScheme scheme) {
+    switch (_phase) {
+      case _TimerPhase.idle:
+        return scheme.outline;
+      case _TimerPhase.running:
+        return scheme.primary;
+      case _TimerPhase.finished:
+        return scheme.onSurfaceVariant;
+    }
+  }
+
+  String _formatSeconds(int totalSeconds) {
+    final int safeSeconds = totalSeconds < 0 ? 0 : totalSeconds;
+    final int hours = safeSeconds ~/ _secondsPerHour;
+    final int minutes = (safeSeconds % _secondsPerHour) ~/ _secondsPerMinute;
+    final int seconds = safeSeconds % _secondsPerMinute;
+    final String paddedMinutes = minutes.toString().padLeft(2, '0');
+    final String paddedSeconds = seconds.toString().padLeft(2, '0');
+    if (_usesHourFormat) {
+      final String paddedHours = hours.toString().padLeft(2, '0');
+      return '$paddedHours:$paddedMinutes:$paddedSeconds';
+    }
+    return '$paddedMinutes:$paddedSeconds';
+  }
+
+  Future<void> _start() async {
+    final int duration = _selectedSeconds;
+    final DateTime endAt = DateTime.now().add(Duration(seconds: duration));
+    setState(() {
+      _sessionSeconds = duration;
+      _remainingSeconds = duration;
+      _completedNaturally = false;
+      _endAt = endAt;
+      _phase = _TimerPhase.running;
+    });
+    _ticker?.cancel();
+    _ticker = Timer.periodic(_tickInterval, _onTick);
+    await _send('start', <String, dynamic>{
+      'seconds': duration,
+      'totalSeconds': duration,
+    });
+  }
+
+  Future<void> _stop() async {
+    _ticker?.cancel();
+    _ticker = null;
+    setState(() {
+      _completedNaturally = false;
+      _endAt = null;
+      _phase = _TimerPhase.finished;
+    });
+    await _send('stop');
+  }
+
+  Future<void> _send(String method, [Map<String, dynamic>? arguments]) async {
+    try {
+      await _timerChannel.invokeMethod<void>(method, arguments);
+    } on MissingPluginException {
+      // No host handler is registered for the channel.
+    } on PlatformException {
+      // The host rejected the call; the in-app countdown keeps running.
+    }
+  }
+
+  void _onTick(Timer timer) {
+    final DateTime? endAt = _endAt;
+    if (endAt == null) {
+      return;
+    }
+    final int milliseconds = endAt.difference(DateTime.now()).inMilliseconds;
+    if (milliseconds <= 0) {
+      _completeCountdown();
+      return;
+    }
+    final int seconds = (milliseconds + 999) ~/ 1000;
+    if (seconds != _remainingSeconds) {
+      setState(() {
+        _remainingSeconds = seconds;
+      });
+    }
+  }
+
+  void _completeCountdown() {
+    _ticker?.cancel();
+    _ticker = null;
+    setState(() {
+      _remainingSeconds = 0;
+      _completedNaturally = true;
+      _endAt = null;
+      _phase = _TimerPhase.finished;
+    });
+    unawaited(_send('stop'));
+  }
+
+  void _setDuration(int seconds) {
+    if (_isRunning) {
+      return;
+    }
+    setState(() {
+      _selectedSeconds =
+          seconds.clamp(_minDurationSeconds, _maxDurationSeconds).toInt();
+      _completedNaturally = false;
+      _phase = _TimerPhase.idle;
+    });
+  }
+
+  void _stepDuration(int deltaSeconds) {
+    _setDuration(_selectedSeconds + deltaSeconds);
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return NowBarTheme.light(
-      child: Scaffold(
-        body: DecoratedBox(
-          decoration: const BoxDecoration(gradient: _backdropGradient),
-          child: SafeArea(
-            child: Stack(
-              fit: StackFit.expand,
-              children: <Widget>[
-                const Positioned.fill(child: _DemoHeading()),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 50),
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: NowBarWidget(
-                      dragDirection: NowBarDragController.dragVertically,
-                      widgets: _demoComponents,
+    final ThemeData theme = Theme.of(context);
+    return Scaffold(
+      body: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: _backdropGradient(theme.colorScheme),
+        ),
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+              return SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 32,
+                      ),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 440),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: <Widget>[
+                            _buildHeader(theme),
+                            const SizedBox(height: 40),
+                            _buildDisplay(theme),
+                            const SizedBox(height: 40),
+                            _buildControls(theme),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(ThemeData theme) {
+    final ColorScheme scheme = theme.colorScheme;
+    final TextTheme textTheme = theme.textTheme;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Text(
+          '타이머',
+          style: textTheme.labelSmall?.copyWith(
+            color: scheme.primary,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 4,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          '잠금화면과 실시간 정보에 표시됩니다',
+          textAlign: TextAlign.center,
+          style: textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDisplay(ThemeData theme) {
+    final ColorScheme scheme = theme.colorScheme;
+    final TextTheme textTheme = theme.textTheme;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 250),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            transitionBuilder: (Widget child, Animation<double> animation) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+            child: Text(
+              _formatSeconds(_displaySeconds),
+              key: ValueKey<_TimerPhase>(_phase),
+              textAlign: TextAlign.center,
+              style: textTheme.displayLarge?.copyWith(
+                color: scheme.onSurface,
+                fontSize: 84,
+                fontWeight: FontWeight.w600,
+                height: 1.1,
+                fontFeatures: _tabularFigures,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 26),
+        Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 320),
+            child: LinearProgressIndicator(
+              value: _progress,
+              minHeight: 6,
+              borderRadius: BorderRadius.circular(3),
+              backgroundColor: scheme.surfaceContainerHighest,
+            ),
+          ),
+        ),
+        const SizedBox(height: 18),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: _statusColor(scheme),
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              _statusLabel,
+              style: textTheme.bodyMedium?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildControls(ThemeData theme) {
+    final ColorScheme scheme = theme.colorScheme;
+    final TextTheme textTheme = theme.textTheme;
+    final VoidCallback? onDecrease =
+        _isRunning ? null : () => _stepDuration(-_secondsPerMinute);
+    final VoidCallback? onIncrease =
+        _isRunning ? null : () => _stepDuration(_secondsPerMinute);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Card(
+          margin: EdgeInsets.zero,
+          elevation: 0,
+          color: scheme.surfaceContainer,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(28),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    Text(
+                      '설정 시간',
+                      style: textTheme.labelLarge?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      _formatSeconds(_selectedSeconds),
+                      style: textTheme.titleMedium?.copyWith(
+                        color: scheme.primary,
+                        fontWeight: FontWeight.w700,
+                        fontFeatures: _tabularFigures,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: <Widget>[
+                      for (final int minutes in _presetMinutes)
+                        _buildPresetChip(minutes),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: onDecrease,
+                        child: const Text('−1분'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: onIncrease,
+                        child: const Text('+1분'),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// Heading shown above the bar deck.
-class _DemoHeading extends StatelessWidget {
-  /// Creates the demo heading.
-  const _DemoHeading();
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final TextTheme textTheme = theme.textTheme;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(32, 56, 32, 0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Text(
-            'NOW BAR',
-            textAlign: TextAlign.center,
-            style: textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.primary,
-              letterSpacing: 4,
+        const SizedBox(height: 20),
+        SizedBox(
+          height: 56,
+          child: FilledButton(
+            onPressed: _isRunning ? _stop : _start,
+            child: Text(
+              _isRunning ? '종료' : '시작',
+              style: textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
-          const SizedBox(height: 14),
-          Text(
-            'A glanceable card deck for Flutter',
-            textAlign: TextAlign.center,
-            style: textTheme.titleLarge,
-          ),
-          const SizedBox(height: 10),
-          Text(
-            'Drag the surface up or down to cycle through media, a timer, '
-            'routines, a live score, and notifications.',
-            textAlign: TextAlign.center,
-            style: textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// The rotation shown by the demo, in display order.
-///
-/// The order mirrors the upstream demo: media player, timer, routines, sports,
-/// and two notification cards. Every surface is neutral and self-contained:
-/// no brand names, logos, or bundled third-party artwork. The list lives at
-/// top level so its identity is stable across rebuilds, which keeps the active
-/// card from resetting when the page rebuilds.
-final List<NowBarComponent> _demoComponents = <NowBarComponent>[
-  NowBarComponent(
-    // The media card is not dismissible, matching the upstream demo: the
-    // rotation always keeps at least one persistent surface.
-    dismissible: false,
-    builder: () => MediaPlayerWidget(
-      tracks: <MediaPlayerTrack>[
-        MediaPlayerTrack(
-          image: _coverViolet,
-          title: 'Midnight Drive',
-          artist: 'Neon Atlas',
-        ),
-        MediaPlayerTrack(
-          image: _coverAmber,
-          title: 'Golden Hour',
-          artist: 'Wanderlight',
-        ),
-        MediaPlayerTrack(
-          image: _coverTeal,
-          title: 'Slow Current',
-          artist: 'Tidal Bloom',
         ),
       ],
-    ),
-  ),
-  NowBarComponent(builder: () => const TimerWidget(seconds: 65)),
-  NowBarComponent(
-    builder: () =>
-        const RoutinesWidget(content: 'At work and 2 others running'),
-  ),
-  NowBarComponent(
-    builder: () => SportsWidget(
-      title: 'ICC Champions Trophy 2025 (Final)\nIND vs NZ',
-      content: 'IND won by 4 wickets',
-      backgroundImage: _sportsBackdrop,
-      leading: const Icon(Icons.sports_cricket, color: Colors.white),
-      trailing: const Icon(Icons.emoji_events, color: Colors.white),
-    ),
-  ),
-  NowBarComponent(
-    // Neutral stand-in for a professional-network notification: the gradient
-    // echoes a blue social card without using any brand name or logo.
-    builder: () => const NotificationWidget(
-      icon: Icon(Icons.person_search),
-      title: 'Weekly reach',
-      content: 'You appeared in 54 searches last week.',
-      colorController: NotificationColorController(
-        backgroundColorGradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: <Color>[Color(0xFF0A66C2), Color(0xFFB3D5FA)],
-        ),
+    );
+  }
+
+  Widget _buildPresetChip(int minutes) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: ChoiceChip(
+        label: Text('$minutes분'),
+        selected: _selectedSeconds == minutes * _secondsPerMinute,
+        showCheckmark: false,
+        onSelected: _isRunning
+            ? null
+            : (bool selected) => _setDuration(minutes * _secondsPerMinute),
       ),
-    ),
-  ),
-  NowBarComponent(
-    // Neutral stand-in for a delivery notification. The icon is tinted dark
-    // because the leading edge of the gradient is a bright yellow.
-    builder: () => const NotificationWidget(
-      icon: Icon(Icons.local_shipping),
-      title: 'Arriving today',
-      content: 'Your order is out for delivery.',
-      colorController: NotificationColorController(
-        iconColor: Color(0xFF0B2A4A),
-        backgroundColorGradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: <Color>[Color(0xFFFADC1E), Color(0xFF0D69B3)],
-        ),
-      ),
-    ),
-  ),
-];
+    );
+  }
+}
 
-/// Full-screen backdrop: white lifting to a soft gray at the bottom, matching
-/// the light stage the reference Now Bar sits on.
-const LinearGradient _backdropGradient = LinearGradient(
-  begin: Alignment.topCenter,
-  end: Alignment.bottomCenter,
-  colors: <Color>[Color(0xFFFFFFFF), Color(0xFFF2F2F4)],
-);
-
-// ---------------------------------------------------------------------------
-// Embedded artwork
-// ---------------------------------------------------------------------------
-//
-// The upstream demo draws album covers and notification logos from bundled
-// drawables. This example ships no third-party imagery: the "artwork" here is
-// four 32 x 32 diagonal gradient PNGs generated locally and embedded as
-// base64. The media surface blurs its cover at an 8 logical pixel sigma and
-// the sports surface blurs its backdrop at 40, which hides the low resolution
-// completely.
-
-/// Decodes one of the base64 PNGs below into a [MemoryImage].
-///
-/// Embedding the bytes keeps the example runnable with a stock `pubspec.yaml`
-/// and no asset registration. Each provider is created once and reused:
-/// [MemoryImage] uses instance identity as its cache key, so constructing a
-/// new one on every frame would force the decoder to run again.
-MemoryImage _embeddedPng(String base64Png) =>
-    MemoryImage(base64Decode(base64Png));
-
-/// 32 x 32 indigo-to-violet gradient, used as a demo track cover.
-const String _coverVioletPng =
-    'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAABOUlEQVR42rXMCUeDAQAG4PevJCnd'
-    '10x3zczMrDIz61yttVat1Vpr5rO2Ws1nbbXWacp0mSkSiUQiEomMSCQSiUgkEvUr3ucHPMjLMBZk'
-    'moqyzCXZfWU5/ZJcmzTfXlnoqC4eqy0dry/3yCSCXDqhqPArqwKqmhl1nahpmG2SRbTyqE4R0yuX'
-    'DarVVnW8XbPR2Zjoat4yaXfMuqRFn7Ia9gdbDkDdh9oOQd2HO45A3R3GY1B3Z/cJqLur5xTU3d17'
-    'BurusZyDugvWC1B378AlqLvPdgXqPmm/BnUPjNyAugdHb0HdRWca1D3kugN1D7vvQd3nPA+g7lHh'
-    'EdQ95n0CdV/yPYO6r/hfQN3Xpl5B3ePTb6Du68F3UPeE+AHqvhn6BHXfDn+Buu9GvkHdk/M/oO6p'
-    'hV9Q973Fv38TD9ZcOeUQwAAAAABJRU5ErkJggg==';
-
-/// 32 x 32 plum-to-amber gradient, used as a demo track cover.
-const String _coverAmberPng =
-    'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAABNUlEQVR42rXMbUcDAQAH8P8nSSS9'
-    'SBLZTte22kPXrtvzbtfdzphKmSmVZSplplSmJ2XKVKYyZUQiIhIRSUQiIhKJRPS6T/H/fYAf5BqL'
-    'r9YarLOG6wW1QdAb28wmMdEsJlva+1ttgxZbSrCnRfuIzTHm6JhwdWY9zinJOSO7coo773fPBz2L'
-    'EU9B7VrRpDVD2jC7iwnvdtJb6pN3B+TyUA+o+0FKAXWvpBVQ96NhH6h7ddQH6n4y7gd1P80EQN3P'
-    'sgFQ9/PJIKj7xXQI1P1yNgTqfpULg7pf58Og7jdzEVD324UoqPvdUhTU/b6ggro/LEdB3R9XVVD3'
-    'p/UYqPvzZgzU/aWogbq/bmmg7m+lXlD39x0d1P1jTwd1/ywboO5f+wao+/ehAer+U4mDuv8ex0Hd'
-    '/6rmPzXtTzLm29QdAAAAAElFTkSuQmCC';
-
-/// 32 x 32 teal-to-mint gradient, used as a demo track cover.
-const String _coverTealPng =
-    'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAABN0lEQVR42rXMaytDAQAG4PczIUQI'
-    'IUTINMthG6dtZm0zp802s45La6G10FpoLbeWW8tda6G10FporZSUklJSSsr/8Sve5wc8KFAIhcqB'
-    'IpWmWBgsUYulWl2ZaCjXGyuGTZUmc5XFWj1qq5GkWoe9zjleP+Fq8LobZU/TjLfZJ7f4p1vnZ9sC'
-    'vvagv2NprjO00BUOdK8GFZHFnuiyciPUuxUGdVfFVkDd+3bXQN2F/Qioe388CuquPloHddecbIK6'
-    'a8+3Qd2HEjFQdzG5A+quu9oDddenDkDdDek4qLvx9hDUfSRzDOpuyp6CupsfzkDdLbkLUHdrPgHq'
-    'bntKgrqPPV+Cuksv16Du9tcUqLvjLQ3q7ny/AXV3fdyBurs/M6Dunq8sqPvk9z2ou/fnEdRd/s2B'
-    'uk/95f8BpgauLacKYzwAAAAASUVORK5CYII=';
-
-/// 32 x 32 deep-blue gradient, used as the sports backdrop.
-const String _sportsBackdropPng =
-    'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAABL0lEQVR42rXMiypDAQAG4P8RXHIX'
-    'sxmzGbMZs7sdc2Z3czbXteZuDQ1rTWtYK0lSkqQkSUqS1JKkJA/mKf7vAT5UyazVcnuNwlmrFOq6'
-    '3PUqsUE90ajxNWmDzf3hFl2kVS+1GWLtxlnZ8HyHKS43JxSWZKdtSelY7Xauq1ypHiGtdm9pxEyv'
-    'Z1frzfb5c7pAfiBU0IeLhsghqPugVAJ1N0bLoO5D08eg7qaZE1D3kblTUHfzwhmouyV+DupuTVyA'
-    'utuSl6Du9sUrUHfH8jWo++jKDai7a+0W1F3YuAN1H0vdg7q70w+g7uObj6Du4vYTqLsn8wzq7t15'
-    'AXX37b2Cuvuzb6Dugdw7qHswXwF1D+1/gLqHC5+g7pPFL1D3qYNvUHfp6AfUPVr6BXWPlf/+AfuJ'
-    'FD0E9R7kAAAAAElFTkSuQmCC';
-
-/// Decoded violet track cover, created once for a stable cache key.
-final MemoryImage _coverViolet = _embeddedPng(_coverVioletPng);
-
-/// Decoded amber track cover, created once for a stable cache key.
-final MemoryImage _coverAmber = _embeddedPng(_coverAmberPng);
-
-/// Decoded teal track cover, created once for a stable cache key.
-final MemoryImage _coverTeal = _embeddedPng(_coverTealPng);
-
-/// Decoded sports backdrop, created once for a stable cache key.
-final MemoryImage _sportsBackdrop = _embeddedPng(_sportsBackdropPng);
+RadialGradient _backdropGradient(ColorScheme scheme) {
+  return RadialGradient(
+    center: const Alignment(0, -0.3),
+    radius: 1,
+    colors: <Color>[
+      scheme.primary.withValues(alpha: 0.16),
+      scheme.surface,
+    ],
+  );
+}

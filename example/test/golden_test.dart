@@ -49,7 +49,10 @@ Future<void> _loadFonts() async {
   }
   final FontLoader icons = FontLoader('MaterialIcons')
     ..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'));
-  await Future.wait(<Future<void>>[inter.load(), icons.load()]);
+  final FontLoader korean = FontLoader('NotoSansKR')
+    ..addFont(rootBundle.load('assets/fonts/NotoSansKR-Regular.ttf'))
+    ..addFont(rootBundle.load('assets/fonts/NotoSansKR-Bold.ttf'));
+  await Future.wait(<Future<void>>[inter.load(), icons.load(), korean.load()]);
 }
 
 /// Decodes every [Image] currently in the tree so the capture includes the

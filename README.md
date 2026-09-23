@@ -2,25 +2,49 @@ English | [한국어](README.ko.md)
 
 # nowbar_flutter
 
-A pure-Dart Flutter recreation of the Samsung Now Bar: a compact, draggable
-card deck that sits at the bottom of your app and stacks animated surfaces for
-media, notifications, routines, sports, and timers.
-
-> **Inspired by** the Jetpack Compose project
-> [`styropyr0/NowBar`](https://github.com/styropyr0/NowBar). This package is an
-> independent reimplementation inspired by the original Jetpack Compose
-> project. It is **not affiliated with, sponsored by, or endorsed by Samsung or
-> the original author**, and it ships no code or artwork from the original
-> repository. A license request to the upstream author is in progress.
-
 [![CI](https://github.com/winwin-ai/nowbar_flutter/actions/workflows/ci.yml/badge.svg)](https://github.com/winwin-ai/nowbar_flutter/actions/workflows/ci.yml)
-<!-- [![pub package](https://img.shields.io/pub/v/nowbar_flutter.svg)](https://pub.dev/packages/nowbar_flutter) -->
-<!-- pub.dev badge pending: not yet published -->
+[![pub package](https://img.shields.io/pub/v/nowbar_flutter.svg)](https://pub.dev/packages/nowbar_flutter)
 
-> **Status: pre-release (0.1.0).** The package is not on pub.dev yet. The public
-> API described below is frozen for the first release; the surface widgets are
-> demo components, not live system integrations (see
+> **Status: 0.1.x (pre-1.0).** The package is published on pub.dev. The public
+> API described below is frozen for the 0.1 line; the surface widgets are demo
+> components, not live system integrations (see
 > [Scope](#scope-this-is-a-ui-recreation)).
+
+This repository holds two things: the `nowbar_flutter` package and the Android
+16 Live Update timer app under [`example/`](example). `nowbar_flutter` is a
+pure-Dart Flutter recreation of the Samsung Now Bar, a compact, draggable card
+deck that stacks animated surfaces for media, notifications, routines, sports,
+and timers. The package documentation is the main body of this file, and the
+example app has its own section right below.
+
+## Android 16 Live Update timer
+
+The app under [`example/`](example) is a countdown timer that drives an Android
+16 Live Update, a promoted ongoing notification. Set a duration with the 1, 3,
+5, 10, 15, 30, or 60-minute presets, or fine-tune it with the `−1분` / `+1분`
+steppers (1 minute to 4 hours), then press `시작` to start and `종료` to stop.
+
+While the countdown runs, it appears in three places: the notification shade's
+**"Live info" (실시간 정보)** section, a lock-screen Now Bar card, and a
+status-bar chip.
+
+<p align="center"><img src="doc/screenshots/timer-app.png" width="230" alt="Timer app with a running countdown and a status-bar chip"/> <img src="doc/screenshots/timer-lockscreen.png" width="230" alt="Lock screen Now Bar card showing the running timer"/> <img src="doc/screenshots/timer-shade.png" width="420" alt="Notification shade Live info section showing the timer card"/></p>
+
+The example app owns the integration through its own `nowbar/live_timer`
+method channel. `start` takes `{seconds, totalSeconds}`, and `stop` ends the
+update. Live Updates require Android 16 or newer, and the example manifest
+declares `POST_NOTIFICATIONS` and `POST_PROMOTED_NOTIFICATIONS`.
+
+To run it:
+
+```sh
+cd example
+flutter run
+```
+
+See [`example/README.md`](example/README.md) for the channel contract. This
+Live Update integration lives **in the example app only** and does not change
+the package's presentation-only scope.
 
 <p align="center"><img src="doc/screenshots/home.png" width="280" alt="The Now Bar deck with the media surface on top"/> <img src="doc/screenshots/dismiss.png" width="280" alt="The routines surface after a swipe-to-dismiss"/></p>
 
@@ -57,8 +81,8 @@ Wire them to your own state, controllers, and platform services as needed.
 
 | Requirement | Version |
 | --- | --- |
-| Flutter | `>= 3.44.0` |
-| Dart SDK | `^3.12.0` |
+| Flutter | `>= 3.10.0` |
+| Dart SDK | `^3.0.0` |
 | Platform | Android |
 
 The package is pure Dart. It declares no platform plugins and calls no native
@@ -66,7 +90,7 @@ code, so it needs no platform-specific setup on Android.
 
 ## Installation
 
-Once the package is published on pub.dev:
+The package is published on pub.dev:
 
 ```sh
 flutter pub add nowbar_flutter
@@ -76,10 +100,10 @@ Or add it to `pubspec.yaml` directly:
 
 ```yaml
 dependencies:
-  nowbar_flutter: ^0.1.0
+  nowbar_flutter: ^0.1.1
 ```
 
-Until the first release lands, depend on the repository:
+You can also depend on the repository directly:
 
 ```yaml
 # Path dependency (local checkout)
@@ -97,8 +121,7 @@ dependencies:
       ref: main
 ```
 
-The repository is currently private; the git dependency assumes it has been
-made public and is reachable with your credentials.
+The repository is public, so the git dependency is reachable directly.
 
 ## Quick start
 
@@ -612,6 +635,26 @@ cd example
 flutter run
 ```
 
+The example is a countdown timer app, not a Now Bar demo. It no longer imports
+the package's widgets or uses the card deck; instead it exercises the package's
+Material 3 theme layer and drives an Android 16 Live Update (a promoted ongoing
+notification) through a `nowbar/live_timer` platform channel declared by the
+example itself. Set a duration from the minute presets (1, 3, 5, 10, 15, 30, 60)
+or the `−1분` / `+1분` steppers (1 minute to 4 hours), then start the countdown.
+On Android 16 or newer the running timer appears in three places:
+
+- the notification shade's **"Live info"** (실시간 정보) section,
+- a lock-screen Now Bar card, and
+- a status-bar chip.
+
+This Live Update integration lives **in the example app only**. It does not
+change the package's scope: `nowbar_flutter` still ships no notification code,
+no platform channels, and no native code (see
+[Scope](#scope-this-is-a-ui-recreation)). The example declares
+`POST_NOTIFICATIONS` and `POST_PROMOTED_NOTIFICATIONS` in its manifest, and Live
+Updates require Android 16 or newer. See [`example/README.md`](example/README.md)
+for the channel contract, setup, and the golden-image workflow.
+
 ## Testing
 
 Run the package test suite from the repository root:
@@ -658,7 +701,11 @@ text is bundled at [`assets/fonts/OFL.txt`](assets/fonts/OFL.txt). See
 
 ## Credits
 
-- Design language inspired by the Jetpack Compose project
-  [`styropyr0/NowBar`](https://github.com/styropyr0/NowBar).
+- Inspired by the Jetpack Compose project
+  [`styropyr0/NowBar`](https://github.com/styropyr0/NowBar). This package is an
+  independent reimplementation, and it is **not affiliated with, sponsored by,
+  or endorsed by Samsung or the original author**. It ships **no code or
+  artwork** from the original repository, and a **license request to the
+  upstream author is in progress**.
 - Inter typeface by [Rasmus Andersson](https://rsms.me/inter/).
 - Built with [Flutter](https://flutter.dev).

@@ -2,25 +2,48 @@
 
 # nowbar_flutter
 
-삼성 Now Bar를 순수 Dart로 다시 구현한 Flutter 패키지입니다. 앱 하단에
-고정되는, 드래그 가능한 카드 덱 형태로 미디어·알림·루틴·스포츠·타이머
-화면을 쌓아 올려 보여줍니다.
-
-> **영감을 준 프로젝트:** Jetpack Compose 프로젝트
-> [`styropyr0/NowBar`](https://github.com/styropyr0/NowBar). 이 패키지는 원본
-> Jetpack Compose 프로젝트에서 영감을 받아 독립적으로 다시 구현한 Dart
-> 구현입니다. **삼성 또는 원작자와 제휴·후원·보증 관계가 없으며**, 원본
-> 저장소의 코드나 아트워크를 포함하지 않습니다. 원작자에게 보낸 라이선스
-> 요청은 진행 중입니다.
-
 [![CI](https://github.com/winwin-ai/nowbar_flutter/actions/workflows/ci.yml/badge.svg)](https://github.com/winwin-ai/nowbar_flutter/actions/workflows/ci.yml)
-<!-- [![pub package](https://img.shields.io/pub/v/nowbar_flutter.svg)](https://pub.dev/packages/nowbar_flutter) -->
-<!-- pub.dev 배지는 아직 게시 전이라 보류 중 -->
+[![pub package](https://img.shields.io/pub/v/nowbar_flutter.svg)](https://pub.dev/packages/nowbar_flutter)
 
-> **상태: 프리릴리스(0.1.0).** 아직 pub.dev에 게시되지 않았습니다. 아래 공개
-> API는 첫 릴리스를 기준으로 확정되었습니다. 내장 위젯은 실제 시스템 연동이
+> **상태: 0.1.x (프리 1.0).** 패키지는 pub.dev에 게시되어 있습니다. 아래 공개
+> API는 0.1 라인을 기준으로 확정되었습니다. 내장 위젯은 실제 시스템 연동이
 > 아니라 데모용 화면입니다(자세한 내용은
 > [범위](#범위-이-패키지는-ui-재현입니다) 참고).
+
+이 저장소에는 `nowbar_flutter` 패키지와 [`example/`](example)의 Android 16
+Live Update 타이머 앱, 두 가지가 들어 있습니다. `nowbar_flutter`는 삼성 Now
+Bar를 순수 Dart로 다시 구현한 패키지로, 앱 하단에 고정되는 드래그 가능한 카드
+덱 형태로 미디어·알림·루틴·스포츠·타이머 화면을 쌓아 올려 보여줍니다. 이
+문서의 본문은 패키지 문서이며, 예제 앱은 바로 아래에 별도 섹션으로 다룹니다.
+
+## Android 16 실시간 정보 타이머
+
+[`example/`](example)에 있는 앱은 Android 16 Live Update(승격된 상시 알림)를
+구동하는 카운트다운 타이머입니다. 1, 3, 5, 10, 15, 30, 60분 프리셋으로 시간을
+정하거나 `−1분` / `+1분` 스테퍼로 1분~4시간 사이에서 조절한 뒤 `시작`을 눌러
+시작하고 `종료`로 멈춥니다.
+
+카운트다운이 실행되는 동안 타이머는 세 곳에 나타납니다. 알림 창의
+**"실시간 정보"(Live info)** 섹션, 잠금화면의 Now Bar 카드, 상태 표시줄
+칩입니다.
+
+<p align="center"><img src="doc/screenshots/timer-app.png" width="230" alt="실행 중인 카운트다운과 상태 표시줄 칩이 있는 타이머 앱"/> <img src="doc/screenshots/timer-lockscreen.png" width="230" alt="실행 중인 타이머를 보여주는 잠금화면 Now Bar 카드"/> <img src="doc/screenshots/timer-shade.png" width="420" alt="타이머 카드가 보이는 알림 창의 실시간 정보 섹션"/></p>
+
+예제 앱은 자체 `nowbar/live_timer` 메서드 채널로 이 연동을 처리합니다.
+`start`는 `{seconds, totalSeconds}`를 받고 `stop`은 업데이트를 끝냅니다.
+Live Update에는 Android 16 이상이 필요하며, 예제 매니페스트는
+`POST_NOTIFICATIONS`와 `POST_PROMOTED_NOTIFICATIONS`를 선언합니다.
+
+실행 방법:
+
+```sh
+cd example
+flutter run
+```
+
+채널 규약은 [`example/README.md`](example/README.md)를 참고하세요. 이
+Live Update 연동은 **예제 앱에만** 있으며 패키지의 표현 전용 범위는 바뀌지
+않습니다.
 
 <p align="center"><img src="doc/screenshots/home.png" width="280" alt="미디어 화면이 맨 위에 놓인 Now Bar 카드 덱"/> <img src="doc/screenshots/dismiss.png" width="280" alt="스와이프로 닫은 뒤의 루틴 화면"/></p>
 
@@ -56,8 +79,8 @@
 
 | 항목 | 버전 |
 | --- | --- |
-| Flutter | `>= 3.44.0` |
-| Dart SDK | `^3.12.0` |
+| Flutter | `>= 3.10.0` |
+| Dart SDK | `^3.0.0` |
 | 지원 플랫폼 | Android |
 
 순수 Dart 패키지입니다. 플랫폼 플러그인을 선언하지 않고 네이티브 코드를
@@ -65,7 +88,7 @@
 
 ## 설치
 
-pub.dev 게시 후에는 다음 한 줄이면 됩니다.
+pub.dev에 게시되어 있으므로 다음 한 줄이면 됩니다.
 
 ```sh
 flutter pub add nowbar_flutter
@@ -75,10 +98,10 @@ flutter pub add nowbar_flutter
 
 ```yaml
 dependencies:
-  nowbar_flutter: ^0.1.0
+  nowbar_flutter: ^0.1.1
 ```
 
-첫 릴리스 전에는 저장소를 직접 참조하세요.
+저장소를 직접 참조해도 됩니다.
 
 ```yaml
 # 로컬 체크아웃 경로 의존성
@@ -96,8 +119,7 @@ dependencies:
       ref: main
 ```
 
-저장소는 현재 비공개이며, Git 의존성은 저장소가 공개되어 자격 증명으로 접근
-가능해진 뒤를 전제로 합니다.
+저장소는 공개되어 있으므로 Git 의존성을 바로 사용할 수 있습니다.
 
 ## 빠른 시작
 
@@ -608,6 +630,26 @@ cd example
 flutter run
 ```
 
+예제는 Now Bar 데모가 아니라 카운트다운 타이머 앱입니다. 더 이상 패키지의
+위젯을 가져오지 않고 카드 덱도 쓰지 않습니다. 대신 패키지의 Material 3 테마
+레이어를 사용하며, 예제가 직접 선언한 `nowbar/live_timer` 플랫폼 채널로
+Android 16 Live Update(승격된 상시 알림)를 구동합니다. 분 단위 프리셋(1, 3,
+5, 10, 15, 30, 60)이나 `−1분` / `+1분` 스테퍼로 1분~4시간 사이의 시간을
+설정한 뒤 카운트다운을 시작하세요. Android 16 이상에서는 실행 중인 타이머가
+세 곳에 나타납니다.
+
+- 알림 창의 **"실시간 정보"(Live info)** 섹션
+- 잠금화면의 Now Bar 카드
+- 상태 표시줄 칩
+
+이 Live Update 연동은 **예제 앱에만** 있습니다. 패키지의 범위는 바뀌지
+않습니다. `nowbar_flutter`는 여전히 알림 코드, 플랫폼 채널, 네이티브 코드를
+포함하지 않습니다([범위](#범위-이-패키지는-ui-재현입니다) 참고). 예제는
+매니페스트에 `POST_NOTIFICATIONS`와 `POST_PROMOTED_NOTIFICATIONS`를
+선언하며, Live Update에는 Android 16 이상이 필요합니다. 채널 규약과 설정,
+골든 이미지 워크플로는
+[`example/README.md`](example/README.md)를 참고하세요.
+
 ## 테스트
 
 저장소 루트에서 패키지 테스트를 실행합니다.
@@ -658,6 +700,8 @@ License, Version 1.1**을 따릅니다. 폰트 파일은 수정 없이 배포하
 
 - 디자인 언어는 Jetpack Compose 프로젝트
   [`styropyr0/NowBar`](https://github.com/styropyr0/NowBar)에서 영감을
-  받았습니다.
+  받았습니다. 이 패키지는 독립적으로 다시 구현한 것이며, **삼성 또는 원작자와
+  제휴·후원·보증 관계가 없습니다**. 원본 저장소의 코드나 아트워크를 **포함하지
+  않으며**, 원작자에게 보낸 **라이선스 요청은 진행 중**입니다.
 - Inter 서체: [Rasmus Andersson](https://rsms.me/inter/).
 - [Flutter](https://flutter.dev)로 제작했습니다.

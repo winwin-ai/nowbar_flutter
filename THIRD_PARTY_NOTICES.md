@@ -17,3 +17,15 @@ The OFL permits bundling and redistribution of the font files with this
 software, provided the license notice is retained. The font files are
 distributed unmodified. The reserved font name "Inter" is used only to
 identify the unmodified upstream font.
+
+## Noto Sans KR (font family)
+
+- **Files:** `example/assets/fonts/NotoSansKR-Regular.ttf`,
+  `example/assets/fonts/NotoSansKR-Bold.ttf`
+- **Upstream:** <https://github.com/google/fonts/tree/main/ofl/notosanskr>
+- **License:** SIL Open Font License, Version 1.1
+
+The example app bundles a **subset** of Noto Sans KR (Regular 400 and Bold
+700). The font is distributed unmodified except for subsetting, which the SIL
+Open Font License, Version 1.1 permits. The reserved font name "Noto Sans KR"
+is used only to identify the unmodified upstream font.
