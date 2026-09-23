@@ -5,7 +5,7 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 0.1.1
+## 0.2.0
 
 ### Changed
 
@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   match.
 - README requirements tables (English and Korean) now state the lowered
   versions, and the stale "not on pub.dev yet" notice was removed.
+- The README now leads with the timer app. The "Scope (this is a UI
+  recreation)" section and the Now Bar deck screenshots were removed from it so
+  the repository description is not mistaken for the app the example ships.
 - The example app was rewritten from a Now Bar demo into a countdown timer app.
   It no longer imports the package's widgets or uses the card deck. Instead it
   drives an Android 16 Live Update (a promoted ongoing notification) over the

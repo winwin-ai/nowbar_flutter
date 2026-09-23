@@ -5,10 +5,9 @@ English | [한국어](README.ko.md)
 [![CI](https://github.com/winwin-ai/nowbar_flutter/actions/workflows/ci.yml/badge.svg)](https://github.com/winwin-ai/nowbar_flutter/actions/workflows/ci.yml)
 [![pub package](https://img.shields.io/pub/v/nowbar_flutter.svg)](https://pub.dev/packages/nowbar_flutter)
 
-> **Status: 0.1.x (pre-1.0).** The package is published on pub.dev. The public
-> API described below is frozen for the 0.1 line; the surface widgets are demo
-> components, not live system integrations (see
-> [Scope](#scope-this-is-a-ui-recreation)).
+> **Status: 0.2.x (pre-1.0).** The package is published on pub.dev. The public
+> API described below is frozen for the 0.2 line; the surface widgets are demo
+> components, not live system integrations.
 
 This repository holds two things: the `nowbar_flutter` package and the Android
 16 Live Update timer app under [`example/`](example). `nowbar_flutter` is a
@@ -45,20 +44,6 @@ flutter run
 See [`example/README.md`](example/README.md) for the channel contract. This
 Live Update integration lives **in the example app only** and does not change
 the package's presentation-only scope.
-
-<p align="center"><img src="doc/screenshots/home.png" width="280" alt="The Now Bar deck with the media surface on top"/> <img src="doc/screenshots/dismiss.png" width="280" alt="The routines surface after a swipe-to-dismiss"/></p>
-
-## Scope (this is a UI recreation)
-
-`nowbar_flutter` recreates the *look and motion* of the Now Bar. It is a
-presentation package only:
-
-- No real media playback, no background audio, no platform media session.
-- No integration with system notifications or Android notification APIs.
-- No background execution, geolocation, or health/fitness data access.
-
-The five built-in widgets are demo surfaces driven by the values you pass in.
-Wire them to your own state, controllers, and platform services as needed.
 
 ## Features
 
@@ -649,8 +634,7 @@ On Android 16 or newer the running timer appears in three places:
 
 This Live Update integration lives **in the example app only**. It does not
 change the package's scope: `nowbar_flutter` still ships no notification code,
-no platform channels, and no native code (see
-[Scope](#scope-this-is-a-ui-recreation)). The example declares
+no platform channels, and no native code. The example declares
 `POST_NOTIFICATIONS` and `POST_PROMOTED_NOTIFICATIONS` in its manifest, and Live
 Updates require Android 16 or newer. See [`example/README.md`](example/README.md)
 for the channel contract, setup, and the golden-image workflow.

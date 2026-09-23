@@ -5,10 +5,9 @@
 [![CI](https://github.com/winwin-ai/nowbar_flutter/actions/workflows/ci.yml/badge.svg)](https://github.com/winwin-ai/nowbar_flutter/actions/workflows/ci.yml)
 [![pub package](https://img.shields.io/pub/v/nowbar_flutter.svg)](https://pub.dev/packages/nowbar_flutter)
 
-> **상태: 0.1.x (프리 1.0).** 패키지는 pub.dev에 게시되어 있습니다. 아래 공개
-> API는 0.1 라인을 기준으로 확정되었습니다. 내장 위젯은 실제 시스템 연동이
-> 아니라 데모용 화면입니다(자세한 내용은
-> [범위](#범위-이-패키지는-ui-재현입니다) 참고).
+> **상태: 0.2.x (프리 1.0).** 패키지는 pub.dev에 게시되어 있습니다. 아래 공개
+> API는 0.2 라인을 기준으로 확정되었습니다. 내장 위젯은 실제 시스템 연동이
+> 아니라 데모용 화면입니다.
 
 이 저장소에는 `nowbar_flutter` 패키지와 [`example/`](example)의 Android 16
 Live Update 타이머 앱, 두 가지가 들어 있습니다. `nowbar_flutter`는 삼성 Now
@@ -44,20 +43,6 @@ flutter run
 채널 규약은 [`example/README.md`](example/README.md)를 참고하세요. 이
 Live Update 연동은 **예제 앱에만** 있으며 패키지의 표현 전용 범위는 바뀌지
 않습니다.
-
-<p align="center"><img src="doc/screenshots/home.png" width="280" alt="미디어 화면이 맨 위에 놓인 Now Bar 카드 덱"/> <img src="doc/screenshots/dismiss.png" width="280" alt="스와이프로 닫은 뒤의 루틴 화면"/></p>
-
-## 범위 (이 패키지는 UI 재현입니다)
-
-`nowbar_flutter`는 Now Bar의 *겉모습과 움직임*을 재현합니다. 표현 계층만
-담당합니다.
-
-- 실제 미디어 재생, 백그라운드 오디오, 플랫폼 미디어 세션은 없습니다.
-- 시스템 알림, Android 알림 API와 연동하지 않습니다.
-- 백그라운드 실행, 위치 정보, 건강/피트니스 데이터 접근이 없습니다.
-
-내장된 5개 위젯은 전달받은 값을 그대로 그리는 데모 화면입니다. 실제 상태,
-컨트롤러, 플랫폼 서비스 연결은 사용하는 쪽에서 처리하세요.
 
 ## 기능
 
@@ -644,7 +629,7 @@ Android 16 Live Update(승격된 상시 알림)를 구동합니다. 분 단위 �
 
 이 Live Update 연동은 **예제 앱에만** 있습니다. 패키지의 범위는 바뀌지
 않습니다. `nowbar_flutter`는 여전히 알림 코드, 플랫폼 채널, 네이티브 코드를
-포함하지 않습니다([범위](#범위-이-패키지는-ui-재현입니다) 참고). 예제는
+포함하지 않습니다. 예제는
 매니페스트에 `POST_NOTIFICATIONS`와 `POST_PROMOTED_NOTIFICATIONS`를
 선언하며, Live Update에는 Android 16 이상이 필요합니다. 채널 규약과 설정,
 골든 이미지 워크플로는
