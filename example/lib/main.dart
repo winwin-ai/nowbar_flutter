@@ -1,6 +1,7 @@
 import 'dart:async';
+import 'dart:ui' show FontFeature;
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide FontFeature;
 import 'package:flutter/services.dart';
 
 const MethodChannel _timerChannel = MethodChannel('nowbar/live_timer');
@@ -327,11 +328,16 @@ class _TimerPageState extends State<_TimerPage> {
         Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 320),
-            child: LinearProgressIndicator(
-              value: _progress,
-              minHeight: 6,
+            child: ClipRRect(
               borderRadius: BorderRadius.circular(3),
-              backgroundColor: scheme.surfaceContainerHighest,
+              child: LinearProgressIndicator(
+                value: _progress,
+                minHeight: 6,
+                backgroundColor: Color.alphaBlend(
+                  scheme.onSurface.withAlpha(0x29),
+                  scheme.surface,
+                ),
+              ),
             ),
           ),
         ),
@@ -374,7 +380,10 @@ class _TimerPageState extends State<_TimerPage> {
         Card(
           margin: EdgeInsets.zero,
           elevation: 0,
-          color: scheme.surfaceContainer,
+          color: Color.alphaBlend(
+            scheme.onSurface.withAlpha(0x10),
+            scheme.surface,
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(28),
           ),
@@ -458,7 +467,6 @@ class _TimerPageState extends State<_TimerPage> {
       child: ChoiceChip(
         label: Text('$minutes분'),
         selected: _selectedSeconds == minutes * _secondsPerMinute,
-        showCheckmark: false,
         onSelected: _isRunning
             ? null
             : (bool selected) => _setDuration(minutes * _secondsPerMinute),
@@ -472,7 +480,7 @@ RadialGradient _backdropGradient(ColorScheme scheme) {
     center: const Alignment(0, -0.3),
     radius: 1,
     colors: <Color>[
-      scheme.primary.withValues(alpha: 0.16),
+      scheme.primary.withAlpha(0x29),
       scheme.surface,
     ],
   );
