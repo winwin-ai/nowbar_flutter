@@ -44,11 +44,14 @@ named `nowbar/live_timer`. The Android implementation lives in
 | `stop` | none | Cancels the notification. |
 
 The notification uses channel `nowbar_timer` with `IMPORTANCE_HIGH` and public
-lock-screen visibility. It is built from `Notification.ProgressStyle` with a
-chronometer countdown anchored to an absolute end time, and `shortCriticalText`
-set to `타이머`. Promotion to a Live Update is requested through the
-`android.requestPromotedOngoing` extra, because the `setRequestPromotedOngoing`
-builder API is API 36.1+ and is not available on `compileSdk` 36.
+lock-screen visibility. The chronometer countdown is always anchored to an
+absolute end time. On Android 16 or newer it additionally adds
+`Notification.ProgressStyle` and `shortCriticalText` set to `타이머`; these
+symbols are API 36 only, so they stay behind a `Build.VERSION.SDK_INT >= 36`
+guard and never load below Android 16. Promotion to a Live Update is requested
+through the `android.requestPromotedOngoing` extra, because the
+`setRequestPromotedOngoing` builder API is API 36.1+ and is not available on
+`compileSdk` 36.
 
 ### Required permissions
 
@@ -67,6 +70,9 @@ On Android 16 or newer, a running timer shows up in three places:
 - the notification shade's "실시간 정보" (Live info) section,
 - a lock-screen Now Bar card, and
 - a status-bar chip.
+
+On Android 7.0 through 15 the countdown is not promoted and still works as a
+standard ongoing countdown notification, without those Live Update surfaces.
 
 ## Fonts
 

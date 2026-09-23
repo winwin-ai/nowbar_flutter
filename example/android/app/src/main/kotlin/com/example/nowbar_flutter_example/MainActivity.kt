@@ -1,5 +1,6 @@
 package com.example.nowbar_flutter_example
 
+import android.annotation.TargetApi
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -16,8 +17,9 @@ class MainActivity : FlutterActivity() {
         const val CHANNEL_ID = "nowbar_timer"
         const val CHANNEL_NAME = "타이머"
         const val NOTIFICATION_ID = 4201
-        const val EXTRA_REQUEST_PROMOTED = "android.requestPromotedOngoing"
+        const val LIVE_UPDATE_API_LEVEL = 36
         const val SEGMENT_COLOR = 0xFF503164.toInt()
+        const val EXTRA_REQUEST_PROMOTED = "android.requestPromotedOngoing"
         val LEGACY_EXPERIMENT_IDS = intArrayOf(4101, 4102)
     }
 
@@ -58,22 +60,11 @@ class MainActivity : FlutterActivity() {
         ensureChannel()
 
         val endAt = System.currentTimeMillis() + seconds * 1000L
-        val segmentLength = if (totalSeconds > 0) totalSeconds else seconds
-
-        val style = Notification.ProgressStyle()
-            .setStyledByProgress(false)
-            .setProgressSegments(
-                listOf(
-                    Notification.ProgressStyle.Segment(segmentLength).setColor(SEGMENT_COLOR)
-                )
-            )
 
         val builder = Notification.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
             .setContentTitle("타이머")
             .setContentText("종료까지 남은 시간")
-            .setShortCriticalText("타이머")
-            .setStyle(style)
             .setOngoing(true)
             .setShowWhen(true)
             .setWhen(endAt)
@@ -82,9 +73,33 @@ class MainActivity : FlutterActivity() {
             .setVisibility(Notification.VISIBILITY_PUBLIC)
             .setCategory(Notification.CATEGORY_STOPWATCH)
 
-        builder.extras.putBoolean(EXTRA_REQUEST_PROMOTED, true)
+        if (Build.VERSION.SDK_INT >= LIVE_UPDATE_API_LEVEL) {
+            applyLiveUpdate(builder, totalSeconds)
+        }
 
         notificationManager.notify(NOTIFICATION_ID, builder.build())
+    }
+
+    /**
+     * Applies the Android 16 Live Update surface. `Notification.ProgressStyle`,
+     * `ProgressStyle.Segment` and `Builder.setShortCriticalText` are API 36 only and
+     * absent from older platform jars, so this must never run below API 36.
+     */
+    @TargetApi(LIVE_UPDATE_API_LEVEL)
+    private fun applyLiveUpdate(builder: Notification.Builder, totalSeconds: Int) {
+        val segmentLength = if (totalSeconds > 0) totalSeconds else 1
+        val style = Notification.ProgressStyle()
+            .setStyledByProgress(false)
+            .setProgressSegments(
+                listOf(
+                    Notification.ProgressStyle.Segment(segmentLength).setColor(SEGMENT_COLOR)
+                )
+            )
+
+        builder
+            .setStyle(style)
+            .setShortCriticalText("타이머")
+        builder.extras.putBoolean(EXTRA_REQUEST_PROMOTED, true)
     }
 
     private fun ensureChannel() {
