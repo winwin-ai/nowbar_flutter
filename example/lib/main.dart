@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'dart:ui' show FontFeature;
+import 'dart:ui' as ui;
 
-import 'package:flutter/material.dart' hide FontFeature;
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 const MethodChannel _timerChannel = MethodChannel('nowbar/live_timer');
@@ -61,8 +61,8 @@ class _TimerPage extends StatefulWidget {
 class _TimerPageState extends State<_TimerPage> {
   static const int _initialDurationSeconds = 5 * _secondsPerMinute;
 
-  static const List<FontFeature> _tabularFigures = <FontFeature>[
-    FontFeature.tabularFigures(),
+  static const List<ui.FontFeature> _tabularFigures = <ui.FontFeature>[
+    ui.FontFeature.tabularFigures(),
   ];
 
   _TimerPhase _phase = _TimerPhase.idle;
