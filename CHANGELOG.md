@@ -5,6 +5,24 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.2.2
+
+### Fixed
+
+- The example app crashed on every Android version below 16 with
+  `NoClassDefFoundError: android.app.Notification$ProgressStyle`.
+  `ProgressStyle`, `ProgressStyle.Segment` and `Builder.setShortCriticalText`
+  are API 36 only, so they now sit behind a `Build.VERSION.SDK_INT >= 36`
+  guard in `MainActivity`. On Android 7.0–15 the timer posts a standard ongoing
+  countdown notification instead of a Live Update.
+
+### Changed
+
+- The README is reduced to the essentials and now states the version
+  requirements explicitly: the Live Update surfaces (the notification shade's
+  "Live info" section, the lock-screen Now Bar card, and the status-bar chip)
+  require Android 16 (API 36), and requesting promotion requires API 36.1.
+
 ## 0.2.1
 
 ### Changed
