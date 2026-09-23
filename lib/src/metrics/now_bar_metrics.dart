@@ -75,13 +75,13 @@ class NowBarMetrics {
 
   @override
   int get hashCode => Object.hash(
-    cornerRadius,
-    widgetHeight,
-    translationClamp,
-    shadowElevation,
-    fillMaxWidthOffset,
-    animationMultiplier,
-  );
+        cornerRadius,
+        widgetHeight,
+        translationClamp,
+        shadowElevation,
+        fillMaxWidthOffset,
+        animationMultiplier,
+      );
 
   @override
   String toString() =>

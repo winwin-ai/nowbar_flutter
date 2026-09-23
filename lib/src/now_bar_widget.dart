@@ -163,11 +163,9 @@ class _NowBarWidgetState extends State<NowBarWidget>
     final clamp = widget.metrics.translationClamp;
     final multiplier = widget.metrics.animationMultiplier;
     final duration = Duration(milliseconds: 800 * multiplier);
-    final canAdvance =
-        widget.dragDirection == NowBarDragController.dragUp ||
+    final canAdvance = widget.dragDirection == NowBarDragController.dragUp ||
         widget.dragDirection == NowBarDragController.dragVertically;
-    final canStepBack =
-        widget.dragDirection == NowBarDragController.dragDown ||
+    final canStepBack = widget.dragDirection == NowBarDragController.dragDown ||
         widget.dragDirection == NowBarDragController.dragVertically;
     if (y < -50 && canAdvance) {
       if (y < -150) {
@@ -289,18 +287,18 @@ class _NowBarWidgetState extends State<NowBarWidget>
           : _offsetY.value.abs().mapRange(0, 200, 1 - index * 0.12, 1.0);
     } else if (_nextScale.value > 0) {
       scale = _offsetY.value.abs().mapRange(
-        0,
-        200,
-        1 - (index - 1) * 0.12,
-        1 - (index - 1) * 0.12 + (index < 5 ? 0.02 : 0),
-      );
+            0,
+            200,
+            1 - (index - 1) * 0.12,
+            1 - (index - 1) * 0.12 + (index < 5 ? 0.02 : 0),
+          );
     } else {
       scale = _offsetY.value.abs().mapRange(
-        0,
-        200,
-        1 - index * 0.12,
-        1 - index * 0.12 + (index < 4 ? 0.02 : 0),
-      );
+            0,
+            200,
+            1 - index * 0.12,
+            1 - index * 0.12 + (index < 4 ? 0.02 : 0),
+          );
     }
 
     return KeyedSubtree(

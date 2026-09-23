@@ -1,6 +1,6 @@
 name: nowbar_flutter
 description: "A pure-Dart Flutter recreation of the Samsung Now Bar with animated media, notification, routine, sports, and timer surfaces."
-version: 0.1.0
+version: 0.1.1
 
 repository: https://github.com/winwin-ai/nowbar_flutter
 issue_tracker: https://github.com/winwin-ai/nowbar_flutter/issues
@@ -21,8 +21,8 @@ screenshots:
     path: doc/screenshots/dismiss.png
 
 environment:
-  sdk: ^3.12.0
-  flutter: ">=3.44.0"
+  sdk: ^3.0.0
+  flutter: ">=3.10.0"
 
 dependencies:
   flutter:
@@ -31,7 +31,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
+  flutter_lints: ^3.0.0
 
 flutter:
   fonts:

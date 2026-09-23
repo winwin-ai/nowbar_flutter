@@ -15,10 +15,10 @@ class AnimatableValue {
   /// The [vsync] provider owns the underlying ticker and must outlive this
   /// object; call [dispose] when the value is no longer needed.
   AnimatableValue({required TickerProvider vsync, double initialValue = 0})
-    : _controller = AnimationController.unbounded(
-        vsync: vsync,
-        value: initialValue,
-      );
+      : _controller = AnimationController.unbounded(
+          vsync: vsync,
+          value: initialValue,
+        );
 
   final AnimationController _controller;
 
@@ -78,10 +78,10 @@ class AnimatableValue {
     _controller
         .animateTo(target, duration: duration, curve: curve)
         .whenCompleteOrCancel(() {
-          if (!completion.isCompleted) {
-            completion.complete();
-          }
-        });
+      if (!completion.isCompleted) {
+        completion.complete();
+      }
+    });
     return completion.future;
   }
 

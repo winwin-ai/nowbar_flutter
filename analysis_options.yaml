@@ -1,4 +1,4 @@
-# NOTE: flutter_lints 6.x ships its shared config as `flutter.yaml` only;
+# NOTE: flutter_lints ships its shared config as `flutter.yaml`;
 # `flutter_lints.yaml` never existed in the published package. The include
 # below is the real path and keeps `flutter analyze` clean.
 include: package:flutter_lints/flutter.yaml

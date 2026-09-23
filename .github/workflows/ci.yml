@@ -32,10 +32,33 @@ jobs:
       - name: Run tests (golden excluded on Linux)
         run: flutter test --exclude-tags golden
 
+  min-sdk:
+    name: Minimum SDK (Flutter 3.10)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.10.0"
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Run tests (golden excluded on Linux)
+        run: flutter test --exclude-tags golden
+
   publish-dry-run:
     name: Publish dry-run
     runs-on: ubuntu-latest
-    needs: analyze-format-test
+    needs: [analyze-format-test, min-sdk]
     steps:
       - name: Checkout
         uses: actions/checkout@v4

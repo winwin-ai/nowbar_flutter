@@ -53,7 +53,8 @@ abstract final class NowBarTypography {
   /// `displayLarge`) keep their Material 3 metrics. Styles carry no color;
   /// [NowBarTheme] colors them from the active color scheme's `onSurface`
   /// role.
-  static final TextTheme textTheme = Typography.material2021().englishLike
+  static final TextTheme textTheme = Typography.material2021()
+      .englishLike
       .apply(fontFamily: fontFamily)
       .copyWith(
         bodyLarge: bodyLarge,

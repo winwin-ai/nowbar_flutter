@@ -71,12 +71,12 @@ class NotificationColorController {
 
   @override
   int get hashCode => Object.hash(
-    backgroundColor,
-    backgroundColorGradient,
-    iconColor,
-    titleColor,
-    contentColor,
-  );
+        backgroundColor,
+        backgroundColorGradient,
+        iconColor,
+        titleColor,
+        contentColor,
+      );
 
   @override
   String toString() =>

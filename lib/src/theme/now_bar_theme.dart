@@ -36,11 +36,11 @@ class NowBarTheme extends StatelessWidget {
 
   /// Creates a Now Bar theme wrapper that always uses the light scheme.
   const NowBarTheme.light({super.key, required this.child, this.seedColor})
-    : darkTheme = false;
+      : darkTheme = false;
 
   /// Creates a Now Bar theme wrapper that always uses the dark scheme.
   const NowBarTheme.dark({super.key, required this.child, this.seedColor})
-    : darkTheme = true;
+      : darkTheme = true;
 
   /// The widget below this wrapper in the tree.
   final Widget child;

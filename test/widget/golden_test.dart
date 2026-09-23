@@ -123,10 +123,10 @@ Widget _deck({
 /// The bar gives its children the full surface, so each label is centered to
 /// clear the 50 logical pixel corner radius.
 List<NowBarComponent> _deckCards() => <NowBarComponent>[
-  NowBarComponent(builder: () => const Center(child: Text('Card A'))),
-  NowBarComponent(builder: () => const Center(child: Text('Card B'))),
-  NowBarComponent(builder: () => const Center(child: Text('Card C'))),
-];
+      NowBarComponent(builder: () => const Center(child: Text('Card A'))),
+      NowBarComponent(builder: () => const Center(child: Text('Card B'))),
+      NowBarComponent(builder: () => const Center(child: Text('Card C'))),
+    ];
 
 /// Starts a pan at the center of the deck.
 ///
