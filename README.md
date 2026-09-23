@@ -27,7 +27,7 @@ While the countdown runs, it appears in three places: the notification shade's
 **"Live info" (실시간 정보)** section, a lock-screen Now Bar card, and a
 status-bar chip.
 
-<p align="center"><img src="doc/screenshots/timer-app.png" width="230" alt="Timer app with a running countdown and a status-bar chip"/> <img src="doc/screenshots/timer-lockscreen.png" width="230" alt="Lock screen Now Bar card showing the running timer"/> <img src="doc/screenshots/timer-shade.png" width="420" alt="Notification shade Live info section showing the timer card"/></p>
+<p align="center"><img src="doc/screenshots/timer-app.jpg" width="230" alt="Timer app with a running countdown and a status-bar chip"/> <img src="doc/screenshots/timer-lockscreen.jpg" width="230" alt="Lock screen Now Bar card showing the running timer"/> <img src="doc/screenshots/timer-shade.jpg" width="420" alt="Notification shade Live info section showing the timer card"/></p>
 
 The example app owns the integration through its own `nowbar/live_timer`
 method channel. `start` takes `{seconds, totalSeconds}`, and `stop` ends the

@@ -1,6 +1,6 @@
 name: nowbar_flutter
 description: "A pure-Dart Flutter recreation of the Samsung Now Bar with animated media, notification, routine, sports, and timer surfaces."
-version: 0.2.0
+version: 0.2.1
 
 repository: https://github.com/winwin-ai/nowbar_flutter
 issue_tracker: https://github.com/winwin-ai/nowbar_flutter/issues
@@ -15,10 +15,12 @@ platforms:
   android:
 
 screenshots:
-  - description: "The Now Bar deck on Android with the media surface on top and the stacked cards peeking behind."
-    path: doc/screenshots/home.png
-  - description: "The routines surface as the top card after dismissing the timer card with a horizontal swipe."
-    path: doc/screenshots/dismiss.png
+  - description: "The timer screen with a running countdown and the status-bar chip."
+    path: doc/screenshots/timer-app.jpg
+  - description: "The lock-screen Now Bar card showing the running timer."
+    path: doc/screenshots/timer-lockscreen.jpg
+  - description: "The notification shade's Live info section with the timer card."
+    path: doc/screenshots/timer-shade.jpg
 
 environment:
   sdk: ^3.0.0

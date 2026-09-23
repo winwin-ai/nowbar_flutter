@@ -26,7 +26,7 @@ Bar를 순수 Dart로 다시 구현한 패키지로, 앱 하단에 고정되는 
 **"실시간 정보"(Live info)** 섹션, 잠금화면의 Now Bar 카드, 상태 표시줄
 칩입니다.
 
-<p align="center"><img src="doc/screenshots/timer-app.png" width="230" alt="실행 중인 카운트다운과 상태 표시줄 칩이 있는 타이머 앱"/> <img src="doc/screenshots/timer-lockscreen.png" width="230" alt="실행 중인 타이머를 보여주는 잠금화면 Now Bar 카드"/> <img src="doc/screenshots/timer-shade.png" width="420" alt="타이머 카드가 보이는 알림 창의 실시간 정보 섹션"/></p>
+<p align="center"><img src="doc/screenshots/timer-app.jpg" width="230" alt="실행 중인 카운트다운과 상태 표시줄 칩이 있는 타이머 앱"/> <img src="doc/screenshots/timer-lockscreen.jpg" width="230" alt="실행 중인 타이머를 보여주는 잠금화면 Now Bar 카드"/> <img src="doc/screenshots/timer-shade.jpg" width="420" alt="타이머 카드가 보이는 알림 창의 실시간 정보 섹션"/></p>
 
 예제 앱은 자체 `nowbar/live_timer` 메서드 채널로 이 연동을 처리합니다.
 `start`는 `{seconds, totalSeconds}`를 받고 `stop`은 업데이트를 끝냅니다.
